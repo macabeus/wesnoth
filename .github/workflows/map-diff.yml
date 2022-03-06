@@ -1,0 +1,78 @@
+name: Map Diff
+
+on:
+  pull_request:
+    paths:
+    - '**.map'
+
+jobs:
+  comment-map-diff:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3.0.0
+    - uses: actions/setup-node@v3.0.0
+      with:
+        node-version: '16'
+    - name: Package install
+      run: |
+        cd ./utils/wesnoth-map-diff
+        npm install
+    - name: Package build
+      run: |
+        cd ./utils/wesnoth-map-diff
+        npm run build:prod
+    - name: Get maps
+      id: get-maps
+      run: |
+        cd ./utils/wesnoth-map-diff
+
+        git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
+
+        MAP_PATHS=$(git diff --name-status HEAD ${{ github.event.pull_request.base.sha }} | grep ".map$" | perl -pe 's/\w\s+//')
+        flat_map_paths=${MAP_PATHS[@]}
+        echo "::set-output name=MAP_PATHS::$flat_map_paths"
+
+        for map_path in $MAP_PATHS
+        do
+          map_filename=$(echo "$map_path" | perl -pe 's/.*\///')
+          git show ${{ github.event.pull_request.base.sha }}:$map_path > $map_filename
+        done
+    - name: Run map diff
+      id: map-diff
+      run: |
+        cd ./utils/wesnoth-map-diff
+
+        diff_images=""
+
+        for map_path in ${{ steps.get-maps.outputs.MAP_PATHS }}
+        do
+          map_filename=$(echo "$map_path" | perl -pe 's/.*\///')
+          output_filename=$(echo "$map_filename" | perl -pe 's/map$/png/')
+
+          node ./build/index.js "./$map_filename" "../../$map_path" "./$output_filename"
+
+          diff_images="$diff_images $output_filename"
+        done
+
+        echo "::set-output name=DIFF_IMAGES::$diff_images"
+    - name: Write body comment
+      id: body-comment
+      run: |
+        cd ./utils/wesnoth-map-diff
+
+        body=""
+
+        for diff_image in ${{ steps.map-diff.outputs.DIFF_IMAGES }}
+        do
+          image_link=$(curl -X POST "https://api.imgur.com/3/upload" \
+            -F "image=@\"$diff_image\"")
+          body="$body![]($image_link)<br/>"
+        done
+
+        echo "::set-output name=BODY::$body"
+    - name: Add comment
+      uses: peter-evans/create-or-update-comment@v1.4.5
+      with:
+        issue-number: ${{ github.event.pull_request.number }}
+        body: |
+          ${{ steps.body-comment.outputs.BODY }}
