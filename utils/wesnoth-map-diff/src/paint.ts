@@ -1,7 +1,4 @@
-import fs from 'fs'
 import Jimp from 'jimp'
-import imagemin from 'imagemin'
-import imageminPngquant from 'imagemin-pngquant'
 import * as tilemap from './tilemap'
 import type { Tilemap } from './tilemap'
 import type { ImagesDict } from './images'
@@ -95,15 +92,6 @@ const paint = async (
 
     output.write(outputFilename)
   })
-
-  const optimized = await imagemin(
-    [outputFilename],
-    {
-      plugins: [imageminPngquant({ quality: [0.1, 0.2] })],
-    }
-  )
-
-  fs.writeFileSync(outputFilename, optimized[0].data)
 }
 
 export default paint

@@ -11,15 +11,12 @@
   "author": "macabeus",
   "license": "GNU GPL v2+",
   "dependencies": {
-    "imagemin": "7.0.1",
-    "imagemin-pngquant": "9.0.2",
     "jimp": "0.16.1",
     "parsimmon": "1.18.1"
   },
   "devDependencies": {
     "@babel/preset-env": "7.16.11",
     "@babel/preset-typescript": "7.16.7",
-    "@types/imagemin": "^8.0.0",
     "@types/jest": "27.4.0",
     "@types/parsimmon": "1.10.6",
     "@typescript-eslint/eslint-plugin": "5.12.1",

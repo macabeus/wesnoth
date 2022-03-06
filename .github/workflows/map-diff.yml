@@ -28,8 +28,14 @@ jobs:
 
         git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
 
-        MAP_PATHS=$(git diff --name-status HEAD ${{ github.event.pull_request.base.sha }} | grep ".map$" | perl -pe 's/\w\s+//')
+        MAP_PATHS=$(git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} | grep ".map$")
         flat_map_paths=${MAP_PATHS[@]}
+
+        echo "----------"
+        echo "$MAP_PATHS"
+        echo "$flat_map_paths"
+        echo "----------"
+
         echo "::set-output name=MAP_PATHS::$flat_map_paths"
 
         for map_path in $MAP_PATHS
@@ -55,6 +61,16 @@ jobs:
         done
 
         echo "::set-output name=DIFF_IMAGES::$diff_images"
+    - name: Compress images
+      run: |
+        cd ./utils/wesnoth-map-diff
+
+        sudo apt-get install -y pngquant
+
+        for diff_image in ${{ steps.map-diff.outputs.DIFF_IMAGES }}
+        do
+          pngquant "$diff_image" -o "$diff_image" --force
+        done
     - name: Write body comment
       id: body-comment
       run: |
@@ -65,7 +81,7 @@ jobs:
         for diff_image in ${{ steps.map-diff.outputs.DIFF_IMAGES }}
         do
           image_link=$(curl -X POST "https://api.imgur.com/3/upload" \
-            -F "image=@\"$diff_image\"")
+            -F "image=@\"$diff_image\"" | jq ".data.link" -r)
           body="$body![]($image_link)<br/>"
         done
 
