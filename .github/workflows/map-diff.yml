@@ -21,36 +21,26 @@ jobs:
       run: |
         cd ./utils/wesnoth-map-diff
         npm run build:prod
-    - name: Get maps
-      id: get-maps
+    - name: Get maps diff
+      id: get-maps-diff
       run: |
         cd ./utils/wesnoth-map-diff
 
+        ## Get Maps
         git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
 
         MAP_PATHS=$(git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} | grep ".map$")
-        flat_map_paths=${MAP_PATHS[@]}
-
-        echo "----------"
-        echo "$MAP_PATHS"
-        echo "$flat_map_paths"
-        echo "----------"
-
-        echo "::set-output name=MAP_PATHS::$flat_map_paths"
 
         for map_path in $MAP_PATHS
         do
           map_filename=$(echo "$map_path" | perl -pe 's/.*\///')
           git show ${{ github.event.pull_request.base.sha }}:$map_path > $map_filename
         done
-    - name: Run map diff
-      id: map-diff
-      run: |
-        cd ./utils/wesnoth-map-diff
 
+        ## Run map diff
         diff_images=""
 
-        for map_path in ${{ steps.get-maps.outputs.MAP_PATHS }}
+        for map_path in $MAP_PATHS
         do
           map_filename=$(echo "$map_path" | perl -pe 's/.*\///')
           output_filename=$(echo "$map_filename" | perl -pe 's/map$/png/')
@@ -60,35 +50,28 @@ jobs:
           diff_images="$diff_images $output_filename"
         done
 
-        echo "::set-output name=DIFF_IMAGES::$diff_images"
-    - name: Compress images
-      run: |
-        cd ./utils/wesnoth-map-diff
-
+        ## Compress images
         sudo apt-get install -y pngquant
 
-        for diff_image in ${{ steps.map-diff.outputs.DIFF_IMAGES }}
+        for diff_image in $diff_images
         do
           pngquant "$diff_image" -o "$diff_image" --force
         done
-    - name: Write body comment
-      id: body-comment
-      run: |
-        cd ./utils/wesnoth-map-diff
 
-        body=""
+        ## Write comment body
+        comment_body=""
 
-        for diff_image in ${{ steps.map-diff.outputs.DIFF_IMAGES }}
+        for diff_image in $diff_images
         do
           image_link=$(curl -X POST "https://api.imgur.com/3/upload" \
             -F "image=@\"$diff_image\"" | jq ".data.link" -r)
-          body="$body![]($image_link)<br/>"
+          comment_body="$comment_body![]($image_link)<br/>"
         done
 
-        echo "::set-output name=BODY::$body"
+        echo "::set-output name=COMMENT_BODY::$comment_body"
     - name: Add comment
       uses: peter-evans/create-or-update-comment@v1.4.5
       with:
         issue-number: ${{ github.event.pull_request.number }}
         body: |
-          ${{ steps.body-comment.outputs.BODY }}
+          ${{ steps.get-maps-diff.outputs.COMMENT_BODY }}
