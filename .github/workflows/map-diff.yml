@@ -47,7 +47,7 @@ jobs:
 
           node ./build/index.js "./$map_filename" "../../$map_path" "./$output_filename"
 
-          diff_images[${#diff_images[@]}]="$output_filename"
+          diff_images+=("$output_filename")
         done
 
         ## Compress images
@@ -61,10 +61,10 @@ jobs:
         ## Write comment body
         comment_body=""
 
-        for i in $(seq 1 ${#diff_images[@]})
+        for i in "${!diff_images[@]}"
         do
-          map_path=${map_paths[$i - 1]}
-          diff_image=${diff_images[$i - 1]}
+          map_path=${map_paths[$i]}
+          diff_image=${diff_images[$i]}
 
           image_link=$(curl -X POST "https://api.imgur.com/3/upload" \
             -F "image=@\"$diff_image\"" | jq ".data.link" -r)
