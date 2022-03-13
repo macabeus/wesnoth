@@ -29,31 +29,31 @@ jobs:
         ## Get Maps
         git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
 
-        MAP_PATHS=$(git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} | grep ".map$")
+        map_paths=($(git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} | grep ".map$"))
 
-        for map_path in $MAP_PATHS
+        for map_path in "${map_paths[@]}"
         do
-          map_filename=$(echo "$map_path" | perl -pe 's/.*\///')
+          map_filename=$(basename "$map_path")
           git show ${{ github.event.pull_request.base.sha }}:$map_path > $map_filename
         done
 
         ## Run map diff
-        diff_images=""
+        diff_images=()
 
-        for map_path in $MAP_PATHS
+        for map_path in "${map_paths[@]}"
         do
-          map_filename=$(echo "$map_path" | perl -pe 's/.*\///')
+          map_filename=$(basename "$map_path")
           output_filename=$(echo "$map_filename" | perl -pe 's/map$/png/')
 
           node ./build/index.js "./$map_filename" "../../$map_path" "./$output_filename"
 
-          diff_images="$diff_images $output_filename"
+          diff_images[${#diff_images[@]}]="$output_filename"
         done
 
         ## Compress images
         sudo apt-get install -y pngquant
 
-        for diff_image in $diff_images
+        for diff_image in "${diff_images[@]}"
         do
           pngquant "$diff_image" -o "$diff_image" --force
         done
@@ -61,11 +61,15 @@ jobs:
         ## Write comment body
         comment_body=""
 
-        for diff_image in $diff_images
+        for i in $(seq 1 ${#diff_images[@]})
         do
+          map_path=${map_paths[$i - 1]}
+          diff_image=${diff_images[$i - 1]}
+
           image_link=$(curl -X POST "https://api.imgur.com/3/upload" \
             -F "image=@\"$diff_image\"" | jq ".data.link" -r)
-          comment_body="$comment_body![]($image_link)<br/>"
+
+          comment_body="$comment_body<h3>$map_path</h3><img src=\"$image_link\" /><br />"
         done
 
         echo "::set-output name=COMMENT_BODY::$comment_body"
@@ -73,5 +77,6 @@ jobs:
       uses: peter-evans/create-or-update-comment@v1.4.5
       with:
         issue-number: ${{ github.event.pull_request.number }}
+        edit-mode: replace
         body: |
           ${{ steps.get-maps-diff.outputs.COMMENT_BODY }}
