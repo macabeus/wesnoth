@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2003 - 2021
+	Copyright (C) 2003 - 2022
 	by David White <dave@whitevine.net>
 	Part of the Battle for Wesnoth Project https://www.wesnoth.org/
 
@@ -1690,9 +1690,12 @@ void server::handle_player_in_game(player_iterator p, simple_wml::document& data
 				for(const auto& content : addon->children("content")) {
 					unsigned long long rows_inserted = user_handler_->db_insert_game_content_info(uuid_, g.db_id(), content->attr("type").to_string(), content->attr("name").to_string(), content->attr("id").to_string(), addon->attr("id").to_string(), addon->attr("version").to_string());
 					if(rows_inserted == 0) {
-						WRN_SERVER << "Did not insert content row for [addon] data with uuid '" << uuid_ <<"', game ID '" << g.db_id() << "', type '" << content->attr("type").to_string() << "', and content ID '" << content->attr("id").to_string() << "'\n";
+						WRN_SERVER << "Did not insert content row for [addon] data with uuid '" << uuid_ << "', game ID '" << g.db_id() << "', type '" << content->attr("type").to_string() << "', and content ID '" << content->attr("id").to_string() << "'\n";
 					}
 				}
+			}
+			if(m.children("addon").size() == 0) {
+				WRN_SERVER << "Game content info missing for game with uuid '" << uuid_ << "', game ID '" << g.db_id() << "', named '" << g.name() << "'\n";
 			}
 
 			user_handler_->db_insert_game_info(uuid_, g.db_id(), server_id_, g.name(), g.is_reload(), m["observer"].to_bool(), !m["private_replay"].to_bool(), g.has_password());
@@ -2181,8 +2184,7 @@ void server::stats_handler(const std::string& /*issuer_name*/,
 {
 	assert(out != nullptr);
 
-	*out << "Number of games = " << games().size() << "\nTotal number of users = " << player_connections_.size()
-		 << "\n";
+	*out << "Number of games = " << games().size() << "\nTotal number of users = " << player_connections_.size();
 }
 
 void server::metrics_handler(const std::string& /*issuer_name*/,

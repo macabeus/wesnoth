@@ -1,26 +1,44 @@
-## Version 1.17.0+dev
+## Version 1.17.1+dev
  ### Add-ons client
+   * Add-on passwords that are not stored in the _server.pbl can now be stored in the same credentials file as multiplayer passwords. (PR #6543)
  ### Add-ons server
  ### Campaigns
+ ### Editor
+ ### Multiplayer
+ ### Lua API
+ ### Packaging
+   * SDL2_image now requires webp support be enabled. (PR #6392)
+   * Lua is now a submodule. (PR #6549)
+ ### Terrain
+ ### Translations
+   * Updated translations: British English, Czech
+ ### Units
+ ### User interface
+ ### WML Engine
+ ### Miscellaneous and Bug Fixes
+   * wmlscope can now report about calls to deprecated macros when using the `--unresolved` switch
+   * Webp images can now be used in mainline and in add-ons. (PR #6392)
+
+## Version 1.17.1
+ ### Add-ons client
+   * Fixed: using the up or down arrow keys in small-screen mode returned to the title screen (issue #6485)
+   * Set the right default port number for the 1.17.x add-ons server.
+ ### Campaigns
    * Delfador’s Memoirs
+     * S11: Finding Chantal will now share her side’s vision with the player, as originally intended.
      * S14: Smoother appearance of enemies and added dialogue (#6176)
+   * Sceptre of Fire
+     * Fixed Thursagan's Arcanister advancement being "lost" after dismounting a minecart.
    * The Rise of Wesnoth
      * S22: Fixed the possibility of a missplaced dialogue when a bridge was broken (issue #6376)
    * Under the Burning Suns
      * S08: Kromph and the Dust devil now trigger a critical event (issue #6211)
    * World Conquest
-     * Fixed artifacts "draining" HP on pick-up.  
- ### Editor
- ### Multiplayer
+     * Fixed artifacts "draining" HP on pick-up.
  ### Lua API
- ### Packaging
- ### Terrain
+   * Upgrade to Lua 5.4.4.
  ### Translations
-   * Updated translations: Czech, Italian, Portuguese (Brazil)
- ### Units
- ### User interface
- ### WML Engine
- ### Miscellaneous and Bug Fixes
+   * Updated translations: Czech, Italian, Portuguese (Brazil), Russian
 
 ## Version 1.17.0
  ### Campaigns
@@ -64,7 +82,7 @@
      * The Dark Assassin’s race is not revealed until uncloaked (issue #6213)
      * The Dust Devil’s XP bar is now blue (issue #6212)
    * Winds of Fate:
-     * New Drakes-centric Campaign added to mainline  
+     * New Drakes-centric Campaign added to mainline
    * World Conquest:
      * Fixed for Winged Scepter not giving the correct defence values
      * Corrected the attack icon of ice bow from a lightning bolt to an iceball
@@ -102,7 +120,7 @@
    * Removed support for writing BMP screenshots (PR #6206).
    * Password storage was fixed to work with multiple accounts (PR #6290)
    * wmllint now automatically removes {MAGENTA_IS_THE_TEAM_COLOR}.
-   * wmllint, wmlscope and wmlindent now support the command line `--version` flag, which reports the current version of Wesnoth (issue #6346). 
+   * wmllint, wmlscope and wmlindent now support the command line `--version` flag, which reports the current version of Wesnoth (issue #6346).
    * wmllint is now capable of handling unit levels and types when checking recruitment patterns.
 
 ## Version 1.16.2
@@ -130,7 +148,7 @@
      * Remove the “formation” ability from the attack predictions dialog, as it was in a confusing location; its effect is still shown in the calculations and chance-to-hit percentage (PR #6326)
      * S02: Pinnacle Rock is now shown during dialogue (issue #6125)
      * S04: Improve dialogue about dark underground tunnels (PR #6345)
-     * S06b: 
+     * S06b:
        * Account for non-elvish units encountering Dwarf Sergeant (issue #6196)
        * Grog will not die as quick now (issue #6196 & #6197)
        * Hermit dialogue cannot be accidentally skipped now (issue #6196)
