@@ -30,6 +30,7 @@ jobs:
         cd ./utils/wesnoth-map-diff
 
         ## Get maps changed
+        echo "Head sha ${{ github.event.pull_request.head.sha }}"
         echo "Base sha ${{ github.event.pull_request.base.sha }}"
 
         git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
