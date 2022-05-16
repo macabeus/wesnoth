@@ -30,10 +30,11 @@ jobs:
         cd ./utils/wesnoth-map-diff
 
         ## Get maps changed
-        echo "Base sha ${{ github.event.pull_request_target.base.sha }}"
+        echo "Head sha ${{ github.event.pull_request.head.sha }}"
+        echo "Base sha ${{ github.event.pull_request.base.sha }}"
 
-        git fetch --depth=1 origin ${{ github.event.pull_request_target.base.sha }}
-        mapfile -t map_paths < <(git diff --name-only HEAD ${{ github.event.pull_request_target.base.sha }} | grep '\.map$')
+        git fetch --depth=1 origin ${{ github.event.pull_request.base.sha }}
+        mapfile -t map_paths < <(git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} | grep '\.map$')
 
         for map_path in "${map_paths[@]}"
         do
@@ -41,7 +42,7 @@ jobs:
 
           ## Get old map version
           map_filename=${map_path##*/}
-          git show ${{ github.event.pull_request_target.base.sha }}:"$map_path" > "$map_filename"
+          git show ${{ github.event.pull_request.base.sha }}:"$map_path" > "$map_filename"
 
           ## Run map diff
           diff_image=${map_filename%.map}.png
