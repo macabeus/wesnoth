@@ -30,11 +30,15 @@ jobs:
         cd ./utils/wesnoth-map-diff
 
         ## Get maps changed
+        echo "Base sha ${{ github.event.pull_request_target.base.sha }}"
+
         git fetch --depth=1 origin ${{ github.event.pull_request_target.base.sha }}
         mapfile -t map_paths < <(git diff --name-only HEAD ${{ github.event.pull_request_target.base.sha }} | grep '\.map$')
 
         for map_path in "${map_paths[@]}"
         do
+          echo "Map path ${map_path}"
+
           ## Get old map version
           map_filename=${map_path##*/}
           git show ${{ github.event.pull_request_target.base.sha }}:"$map_path" > "$map_filename"
@@ -57,7 +61,7 @@ jobs:
     - name: Add comment
       uses: peter-evans/create-or-update-comment@v1.4.5
       with:
-        issue-number: ${{ github.event.pull_request_target.number }}
+        issue-number: ${{ github.event.pull_request.number }}
         edit-mode: replace
         body: |
           ${{ steps.get-maps-diff.outputs.COMMENT_BODY }}
