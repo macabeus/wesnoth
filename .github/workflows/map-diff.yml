@@ -34,6 +34,8 @@ jobs:
 
         for map_path in "${map_paths[@]}"
         do
+          echo "** Working on $map_path **"
+
           ## Get old map version
           old_map=${map_path##*/}
           git show "$SHA":"$map_path" > "$old_map"
@@ -48,6 +50,7 @@ jobs:
           ## Write comment body
           curl_result=$(curl -X POST "https://api.imgur.com/3/upload" -F "image=@\"$diff_image\"")
 
+          echo "Imgur result:"
           echo "$curl_result"
 
           image_link=$($curl_result | jq -r ".data.link")
